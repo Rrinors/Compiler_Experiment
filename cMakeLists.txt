@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.4.1)
+
+project(test)
+
+add_executable(main main.cpp FA.cpp)
+
+set(CMAKE_CXX_FLAGS "-std=c++20")
