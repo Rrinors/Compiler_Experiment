@@ -1,7 +1,10 @@
 #include "FA.h"
 #include <cassert>
-#include <functional>
 #include <iostream>
+#include <algorithm>
+#include <set>
+#include <queue>
+#include <map>
 
 std::vector<char> CHAR_SET = {
     'a', 'b', 'c', 'd', '0', '1', '2', '3'
@@ -9,6 +12,7 @@ std::vector<char> CHAR_SET = {
 
 int FA::new_node() {
     FA::emplace_back();
+    accept.emplace_back();
     return int(FA::size()) - 1;
 }
 
@@ -17,7 +21,17 @@ void FA::add_edge(int u, int v, char c) {
 }
 
 void FA::show() {
+    if (FA::empty()) {
+        return;
+    }
     std::cout << "```mermaid" << std::endl << "graph LR" << std::endl;
+    for (int u = 0; u < FA::size(); u++) {
+        if (accept[u]) {
+            std::cout << u << "(((" << u << ")))" << std::endl;
+        } else {
+            std::cout << u << "((" << u << "))" << std::endl;
+        }
+    }
     for (int u = 0; u < FA::size(); u++) {
         for (auto [v, c] : *(FA::begin() + u)) {
             std::cout << u << "--";
@@ -25,12 +39,16 @@ void FA::show() {
             std::cout << ">" << v << std::endl;
         }
     }
+    std::cout << "style " << start << " fill:#7FFF00" << std::endl;
     std::cout << "```" << std::endl;
 }
 
 FA RE_to_NFA(std::string re) {
-    int n = re.length();
+    if (re.empty()) {
+        return {};
+    }
 
+    int n = re.length();
     std::vector<int> stk, match(n, -1);
     for (int i = 0; i < n; i++) {
         if (re[i] == '(') {
@@ -43,7 +61,7 @@ FA RE_to_NFA(std::string re) {
     }
 
     FA nfa;
-    std::function<int(int, int, int)> work = [&](int l, int r, int lead) {
+    auto work = [&](auto self, int l, int r, int lead) -> int {
         int lst_in = lead, lst_out = lead, sink = nfa.new_node();
         for (int i = l; i <= r; i++) {
             if (re[i] == '*') {
@@ -56,7 +74,7 @@ FA RE_to_NFA(std::string re) {
             } else if (re[i] == '(') {
                 lst_in = nfa.new_node();
                 nfa.add_edge(lst_out, lst_in);
-                lst_out = work(i + 1, match[i] - 1, lst_in);
+                lst_out = self(self, i + 1, match[i] - 1, lst_in);
                 i = match[i];
             } else {
                 assert(std::find(CHAR_SET.begin(), CHAR_SET.end(), re[i]) != CHAR_SET.end());
@@ -70,7 +88,77 @@ FA RE_to_NFA(std::string re) {
         return lst_out = sink;
     };
 
-    work(0, n - 1, nfa.new_node());
+    work(work, 0, n - 1, nfa.new_node());
+    nfa.start = 0;
+    nfa.accept[1] = true;
 
     return nfa;
+}
+
+FA NFA_to_DFA(FA nfa) {
+    if (nfa.empty()) {
+        return {};
+    }
+
+    auto extend = [&](std::set<int> s) {
+        std::set<int> res;
+        std::queue<int> q;
+        for (auto u : s) {
+            res.insert(u);
+            q.push(u);
+        }
+        while (!q.empty()) {
+            auto u = q.front();
+            q.pop();
+            for (auto [v, w] : nfa[u]) {
+                if (w == 0 && !res.contains(v)) {
+                    res.insert(v);
+                    q.push(v);
+                }
+            }
+        }
+        return res;
+    };
+
+    auto trans = [&](std::set<int> s, char c) {
+        std::set<int> res;
+        for (auto u : s) {
+            for (auto [v, w] : nfa[u]) {
+                if (w == c) { res.insert(v); }
+            }
+        }
+        return extend(res);
+    };
+
+    auto check_accept = [&](std::set<int> s) {
+        for (auto x : s) {
+            if (nfa.accept[x]) { return true; }
+        }
+        return false;
+    };
+
+    FA dfa;
+    std::map<std::set<int>, int> id;
+    std::queue<std::set<int>> q;
+
+    auto start = extend(std::set{nfa.start});
+    dfa.accept[dfa.start = id[start] = dfa.new_node()] = check_accept(start);
+    q.push(start);
+
+    while (!q.empty()) {
+        auto s = q.front();
+        q.pop();
+        for (auto c : CHAR_SET) {
+            auto ns = trans(s, c);
+            if (!ns.empty()) {
+                if (!id.contains(ns)) {
+                    dfa.accept[id[ns] = dfa.new_node()] = check_accept(ns);
+                    q.push(ns);
+                }
+                dfa.add_edge(id[s], id[ns], c);
+            }
+        }
+    }
+
+    return dfa; 
 }
