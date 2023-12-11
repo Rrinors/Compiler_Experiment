@@ -160,5 +160,98 @@ FA NFA_to_DFA(FA nfa) {
         }
     }
 
-    return dfa; 
+    return minimize_DFA(dfa); 
+}
+
+FA minimize_DFA(FA dfa) {
+    if (dfa.empty()) {
+        return {};
+    }
+    
+    int n = dfa.size();
+
+    std::vector<int> bel(n);
+    std::queue<std::set<int>> q;
+
+    std::set<int> s1, s2;
+    for (int i = 0; i < n; i++) {
+        if (dfa.accept[i]) {
+            s1.insert(i);
+            bel[i] = 0;
+        } else {
+            s2.insert(i);
+            bel[i] = 1;
+        }
+    }
+
+    q.push(s1);
+    q.push(s2);
+
+    std::vector<std::set<int>> sets;
+    int tot = 2;
+
+    auto split = [&](std::set<int> s) {
+        if (s.empty()) {
+            return true;
+        }
+        for (auto c : CHAR_SET) {
+            std::map<int, std::set<int>> mp;
+            for (auto x : s) {
+                bool splitted = false;
+                for (auto [y, w] : dfa[x]) {
+                    if (w == c) {
+                        mp[bel[y]].insert(x);
+                        splitted = true;
+                        break;
+                    }
+                }
+                if (!splitted) {
+                    mp[-1].insert(x);
+                }
+            }
+            if (mp.size() > 1) {
+                for (auto [_, u] : mp) {
+                    for (auto x : u) {
+                        bel[x] = tot;
+                    }
+                    q.push(u);
+                    tot++;
+                }
+                return true;
+            }
+        }
+        return false;
+    };
+
+    while (!q.empty()) {
+        auto s = q.front();
+        q.pop();
+        if (!split(s)) {
+            sets.push_back(s);
+        }
+    }
+
+    for (int i = 0; auto s : sets) {
+        for (auto x : s) {
+            bel[x] = i;
+        }
+        i++;
+    }
+
+    FA res;
+    for (auto s : sets) {
+        int id = res.new_node();
+        res.accept[id] = dfa.accept[*s.begin()];
+        for (auto x : s) {
+            for (auto [y, w] : dfa[x]) {
+                if (std::find(res[id].begin(), res[id].end(), std::pair(bel[y], w)) == res[id].end()) {
+                    res[id].emplace_back(bel[y], w);
+                }
+            }
+        }
+    }
+
+    res.start = bel[dfa.start];
+
+    return res;
 }

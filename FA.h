@@ -16,4 +16,6 @@ FA RE_to_NFA(std::string s);
 
 FA NFA_to_DFA(FA nfa);
 
+FA minimize_DFA(FA dfa);
+
 #endif
