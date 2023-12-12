@@ -1,4 +1,4 @@
-#include "FA.h"
+#include "Automaton.h"
 #include <cassert>
 #include <iostream>
 #include <algorithm>
@@ -10,30 +10,30 @@ std::vector<char> CHAR_SET = {
     'a', 'b', 'c', 'd', '0', '1', '2', '3'
 };
 
-int FA::new_node() {
-    FA::emplace_back();
+int Finite_Automaton::new_node() {
+    Finite_Automaton::emplace_back();
     accept.emplace_back();
-    return int(FA::size()) - 1;
+    return int(Finite_Automaton::size()) - 1;
 }
 
-void FA::add_edge(int u, int v, char c) {
-    (FA::begin() + u)->emplace_back(v, c);
+void Finite_Automaton::add_edge(int u, int v, char c) {
+    (Finite_Automaton::begin() + u)->emplace_back(v, c);
 }
 
-void FA::show() {
-    if (FA::empty()) {
+void Finite_Automaton::show() {
+    if (Finite_Automaton::empty()) {
         return;
     }
     std::cout << "```mermaid" << std::endl << "graph LR" << std::endl;
-    for (int u = 0; u < FA::size(); u++) {
+    for (int u = 0; u < Finite_Automaton::size(); u++) {
         if (accept[u]) {
             std::cout << u << "(((" << u << ")))" << std::endl;
         } else {
             std::cout << u << "((" << u << "))" << std::endl;
         }
     }
-    for (int u = 0; u < FA::size(); u++) {
-        for (auto [v, c] : *(FA::begin() + u)) {
+    for (int u = 0; u < Finite_Automaton::size(); u++) {
+        for (auto [v, c] : *(Finite_Automaton::begin() + u)) {
             std::cout << u << "--";
             if (c) { std::cout << c << "--"; }
             std::cout << ">" << v << std::endl;
@@ -43,7 +43,7 @@ void FA::show() {
     std::cout << "```" << std::endl;
 }
 
-FA RE_to_NFA(std::string re) {
+Finite_Automaton RE_to_NFA(Regular_Expression re) {
     if (re.empty()) {
         return {};
     }
@@ -60,7 +60,7 @@ FA RE_to_NFA(std::string re) {
         }
     }
 
-    FA nfa;
+    Finite_Automaton nfa;
     auto work = [&](auto self, int l, int r, int lead) -> int {
         int lst_in = lead, lst_out = lead, sink = nfa.new_node();
         for (int i = l; i <= r; i++) {
@@ -95,7 +95,7 @@ FA RE_to_NFA(std::string re) {
     return nfa;
 }
 
-FA NFA_to_DFA(FA nfa) {
+Finite_Automaton NFA_to_DFA(Finite_Automaton nfa) {
     if (nfa.empty()) {
         return {};
     }
@@ -137,7 +137,7 @@ FA NFA_to_DFA(FA nfa) {
         return false;
     };
 
-    FA dfa;
+    Finite_Automaton dfa;
     std::map<std::set<int>, int> id;
     std::queue<std::set<int>> q;
 
@@ -163,7 +163,7 @@ FA NFA_to_DFA(FA nfa) {
     return minimize_DFA(dfa); 
 }
 
-FA minimize_DFA(FA dfa) {
+Finite_Automaton minimize_DFA(Finite_Automaton dfa) {
     if (dfa.empty()) {
         return {};
     }
@@ -238,7 +238,7 @@ FA minimize_DFA(FA dfa) {
         i++;
     }
 
-    FA res;
+    Finite_Automaton res;
     for (auto s : sets) {
         int id = res.new_node();
         res.accept[id] = dfa.accept[*s.begin()];
