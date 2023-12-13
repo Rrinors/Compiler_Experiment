@@ -1,5 +1,6 @@
 #include "Grammar.h"
 #include <cassert>
+#include <queue>
 // #include "Debug.h"
 
 Grammar rm_left_recursion(Grammar g) {
@@ -14,11 +15,9 @@ Grammar rm_left_recursion(Grammar g) {
                 b.insert(rm_head(s) + q);
             }
         }
-
         if (b.empty()) { return p; }
         b.emplace();
         r.emplace_back(q, b);
-        
         return a;
     };
 
@@ -26,11 +25,23 @@ Grammar rm_left_recursion(Grammar g) {
     for (auto &[c, v] : g) {
         std::set<std::string> res;
         for (auto s : v) {
-            if (used.contains(get_head(s))) {
-                res = res + add_each(g[get_head(s)], rm_head(s));
-            } else {
-                res.insert(s);
+            assert(!s.empty());
+            std::queue<std::string> q;
+            q.push(s);
+            std::set<std::string> add;
+            while (!q.empty()) {
+                auto u = q.front();
+                q.pop();
+                if (!used.contains(get_head(u))) {
+                    add.insert(u);
+                } else {
+                    auto tmp = add_each(g[get_head(u)], rm_head(u));
+                    for (auto x : tmp) {
+                        q.push(x);
+                    }
+                }
             }
+            res = res + add;
         }
         res = rm_self_recursion(res, c);
         std::swap(v, res);
