@@ -10,10 +10,12 @@ int main() {
     // dfa.show();
 
     Grammar g;
-    g["A"].insert("Ba");
-    g["A"].insert("b");
-    g["B"].insert("Ab");
-    g["B"].insert("c");
+    g["S"].insert("Qc");
+    g["S"].insert("c");
+    g["Q"].insert("Rb");
+    g["Q"].insert("b");
+    g["R"].insert("Sa");
+    g["R"].insert("a");
     show(g);
     std::cout << "====\n";
     g = rm_left_recursion(g);
