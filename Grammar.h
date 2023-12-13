@@ -1,12 +1,10 @@
 #ifndef GRAMMAR_H
 #define GRAMMAR_H
 
-#include <vector>
 #include <string>
 #include <set>
 #include <map>
-#include <iostream>
-#include <algorithm>
+#include <vector>
 
 using Grammar = std::map<std::string, std::set<std::string>>;
 
@@ -24,6 +22,12 @@ std::string rm_head(std::string s);
 
 void show(Grammar g);
 
-// std::map<char, std::set<char>> get_first_set(Grammar g);
+Grammar extract_LCF(Grammar g);
+
+struct Trie : std::vector<std::map<std::string, int>> {
+    int new_node();
+    void add(std::string s);
+    Trie();
+};
 
 #endif

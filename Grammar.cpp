@@ -1,6 +1,7 @@
 #include "Grammar.h"
 #include <cassert>
 #include <queue>
+#include <iostream>
 // #include "Debug.h"
 
 Grammar rm_left_recursion(Grammar g) {
@@ -103,13 +104,61 @@ std::string rm_head(std::string s) {
     return s;
 }
 
-// std::map<char, std::set<char>> get_first_set(Grammar g) {
-//     std::map<char, std::set<char>> res;
-//     auto dfs = [&](auto self, char cur) -> void {
-//     };
-//     for (auto [c, v] : g) {
-//         for (auto s : v) {   
-//         }
-//     }
-//     return res;
-// }
+Grammar extract_LCF(Grammar g) {
+    Grammar res;
+    for (auto [c, v] : g) {
+        Trie t;
+        int cnt = 0;
+        for (auto s : v) {
+            t.add(s);
+        }
+        auto dfs = [&](auto self, int x, std::string cur, std::string parent) -> void {
+            if (t[x].empty()) {
+                res[parent].insert(cur);
+                return;
+            }
+            if (t[x].size() > 1) {
+                auto now = c;
+                if (!cur.empty()) {
+                    now = c + std::to_string(cnt++);
+                    res[parent].insert(cur + now);
+                }
+                for (auto [w, y] : t[x]) {
+                    self(self, y, w, now);
+                }
+            } else {
+                auto [w, y] = *t[x].begin();
+                self(self, y, cur + w, parent);
+            }
+        };
+        dfs(dfs, 0, {}, c);
+    }
+    return res;
+}
+
+int Trie::new_node() {
+    Trie::emplace_back();
+    return Trie::size() - 1;
+}
+
+Trie::Trie() {
+    Trie::new_node();
+}
+
+void Trie::add(std::string s) {
+    int n = s.length(), p = 0;
+    for (int i = 0; i < n; i++) {
+        if (s[i] >= '0' && s[i] <= '9') {
+            continue;
+        }
+        int len = 1;
+        while (i + len < n && s[i + len] >= '0' && s[i + len] <= '9') {
+            len++;
+        }
+        auto cur = s.substr(i, len);
+        if (!(*this)[p].contains(cur)) {
+            (*this)[p][cur] = new_node();
+        }
+        p = (*this)[p][cur];
+    }
+}
