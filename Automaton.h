@@ -1,5 +1,5 @@
-#ifndef Automaton_H
-#define Automaton_H
+#ifndef AUTOMATON_H
+#define AUTOMATON_H
 
 #include <vector>
 #include <string>
