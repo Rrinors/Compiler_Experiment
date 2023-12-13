@@ -35,8 +35,9 @@ void Finite_Automaton::show() {
     for (int u = 0; u < Finite_Automaton::size(); u++) {
         for (auto [v, c] : *(Finite_Automaton::begin() + u)) {
             std::cout << u << "--";
-            if (c) { std::cout << c << "--"; }
-            std::cout << ">" << v << std::endl;
+            if (c) { std::cout << c; }
+            else { std::cout << "ε"; }
+            std::cout << "-->" << v << std::endl;
         }
     }
     std::cout << "style " << start << " fill:#7FFF00" << std::endl;
