@@ -162,3 +162,47 @@ void Trie::add(std::string s) {
         p = (*this)[p][cur];
     }
 }
+
+std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
+    g = rm_left_recursion(g);
+    show(g);
+    std::cout << "====\n";
+
+    std::map<std::string, std::set<std::string>> res;
+    std::set<std::string> tmp;
+    auto dfs = [&](auto self, std::string cur) -> bool {
+        bool flag = true;
+        for (auto s : g[cur]) {
+            if (s.empty()) {
+                res[cur].emplace();
+                flag = false;
+            }
+            for (int i = 0; i < s.length(); i++) {
+                if (s[i] == 39) {
+                    continue;
+                }
+                std::string t = s.substr(i, 1);
+                if (i + 1 < s.length() && s[i + 1] == 39) {
+                    t.push_back(s[i + 1]);
+                }
+                if (g.contains(t)) {
+                    if (self(self, t)) {
+                        break;
+                    }
+                } else {
+                    tmp.insert(t);
+                    break;
+                }
+            }
+        }
+        return flag;
+    };
+
+    for (auto [c, _] : g) {
+        dfs(dfs, c);
+        res[c] = res[c] + tmp;
+        tmp.clear();
+    }
+
+    return res;
+}

@@ -30,4 +30,6 @@ struct Trie : std::vector<std::map<std::string, int>> {
     Trie();
 };
 
+std::map<std::string, std::set<std::string>> get_first_set(Grammar g);
+
 #endif
