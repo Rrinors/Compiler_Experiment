@@ -2,29 +2,32 @@
 #include "Grammar.h"
 #include <iostream>
 
-int main() {
-    // 正则表达式转 NFA、NFA 转 DFA 和 DFA 最小化测试代码
-    // Regular_Expression re = "a*b*(|c|d*)|((01)*23)*";
-    // Regular_Expression re = "a(bc|dc)*";
-    // auto nfa = RE_to_NFA(re);
-    // nfa.show();
-    // auto dfa = NFA_to_DFA(nfa);
-    // dfa.show();
+// 正则表达式转NFA、NFA转DFA、DFA最小化
+void E1() {
+    Regular_Expression re = "a(bc|dc)*";
+    auto nfa = RE_to_NFA(re);
+    nfa.show();
+    auto dfa = NFA_to_DFA(nfa);
+    dfa.show();
+}
 
-    // 消除左递归测试代码
-    // Grammar g;
-    // g["S"].insert("Qc");
-    // g["S"].insert("c");
-    // g["Q"].insert("Rb");
-    // g["Q"].insert("b");
-    // g["R"].insert("Sa");
-    // g["R"].insert("a");
-    // show(g);
-    // std::cout << "====\n";
-    // g = rm_left_recursion(g);
-    // show(g);
+// 消除左递归
+void E2() {
+    Grammar g;
+    g["S"].insert("Qc");
+    g["S"].insert("c");
+    g["Q"].insert("Rb");
+    g["Q"].insert("b");
+    g["R"].insert("Sa");
+    g["R"].insert("a");
+    show(g);
+    std::cout << "====\n";
+    g = rm_left_recursion(g);
+    show(g);
+}
 
-    // 提取左公因子测试代码
+// 提取左公因子
+void E3() {
     Grammar g;
     g["A"].insert("Bcd");
     g["A"].insert("Bce");
@@ -35,6 +38,35 @@ int main() {
     std::cout << "====\n";
     g = extract_LCF(g);
     show(g);
+}
+
+// FIRST集
+void E4() {
+    Grammar g;
+    g["A"].insert("Ba");
+    g["A"].insert("b");
+    g["B"].insert("Ac");
+    show(g);
+    std::cout << "----\n";
+    auto ans = get_first_set(g);
+    for (auto [c, s] : ans) {
+        std::cout << c << ": [";
+        for (auto x : s) {
+            if (!x.empty()) std::cout << x;
+            else std::cout << "ε";
+            if (x != *s.rbegin()) {
+                std::cout << ",";
+            }
+        }
+        std::cout << "]\n";
+    }
+}
+
+int main() {
+    // E1();
+    // E2();
+    // E3();
+    // E4();
 
     return 0;
 }
