@@ -57,6 +57,7 @@ Grammar rm_left_recursion(Grammar g) {
 }
 
 void show(Grammar g) {
+    std::cout << "start: " << g.start << std::endl;
     for (auto [c, v] : g) {
         std::cout << c << "->";
         for (auto s : v) {
@@ -106,6 +107,7 @@ std::string rm_head(std::string s) {
 
 Grammar extract_LCF(Grammar g) {
     Grammar res;
+    res.start = g.start;
     for (auto [c, v] : g) {
         Trie t;
         int cnt = 0;
@@ -164,17 +166,13 @@ void Trie::add(std::string s) {
 }
 
 std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
-    g = rm_left_recursion(g);
-    show(g);
-    std::cout << "====\n";
-
     std::map<std::string, std::set<std::string>> res;
     std::set<std::string> tmp;
     auto dfs = [&](auto self, std::string cur) -> bool {
         bool flag = true;
         for (auto s : g[cur]) {
             if (s.empty()) {
-                res[cur].emplace();
+                res[cur].insert("ε");
                 flag = false;
             }
             for (int i = 0; i < s.length(); i++) {
@@ -205,4 +203,69 @@ std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
     }
 
     return res;
+}
+
+std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
+    auto first_set = get_first_set(g);
+
+    std::map<std::string, std::set<std::string>> res;
+    std::queue<std::string> q;
+    for (auto [c, _] : g) {
+        q.push(c);
+        res[c] = {};
+    }
+    res[g.start].insert("$");
+
+    while (!q.empty()) {
+        auto c = q.front();
+        q.pop();
+        for (auto s : g[c]) {
+            for (int i = 0; i < s.length(); i++) {
+                if (s[i] == 39) {
+                    continue;
+                }
+                std::string cur{s[i]};
+                if (i + 1 < s.length() && s[i + 1] == 39) {
+                    cur.push_back(s[i + 1]);
+                }
+                if (g.contains(cur)) {
+                    int j = i + cur.size();
+                    if (j == s.length()) {
+                        bool add = false;
+                        for (auto x : res[c]) {
+                            if (!res[cur].contains(x)) {
+                                add = true;
+                                res[cur].insert(x);
+                            }
+                        }
+                        if (add) { q.push(cur); }
+                    } else {
+                        std::string y{s[j]};
+                        if (j + 1 < s.length() && s[j + 1] == 39) {
+                            y.push_back(s[j + 1]);
+                        }
+                        if (g.contains(y)) {
+                            bool add = false;
+                            for (auto x : first_set[y]) {
+                                if (x != "ε" && !res[cur].contains(x)) {
+                                    add = true;
+                                    res[cur].insert(x);
+                                }
+                            }
+                            if (add) { q.push(cur); }
+                        } else if (!res[cur].contains(y)) {
+                            res[cur].insert(y);
+                            q.push(cur);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::map<std::string, std::set<std::string>> get_select_set(Grammar g) {
+    
 }

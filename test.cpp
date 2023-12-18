@@ -43,17 +43,44 @@ void E3() {
 // FIRST集
 void E4() {
     Grammar g;
+    g.start = "A";
     g["A"].insert("Ba");
     g["A"].insert("b");
     g["B"].insert("Ac");
     show(g);
     std::cout << "----\n";
+    g = rm_left_recursion(g);
     auto ans = get_first_set(g);
     for (auto [c, s] : ans) {
         std::cout << c << ": [";
         for (auto x : s) {
-            if (!x.empty()) std::cout << x;
-            else std::cout << "ε";
+            std::cout << x;
+            if (x != *s.rbegin()) {
+                std::cout << ",";
+            }
+        }
+        std::cout << "]\n";
+    }
+}
+
+// FOLLOW集
+void E5() {
+    Grammar g;
+    g.start = "A";
+    g["A"].insert("aBA");
+    g["A"].insert("d");
+    g["B"].insert("Ca");
+    g["C"].insert("d");
+    show(g);
+    std::cout << "----\n";
+    g = rm_left_recursion(g);
+    show(g);
+    std::cout << "====\n";
+    auto ans = get_follow_set(g);
+    for (auto [c, s] : ans) {
+        std::cout << c << ": [";
+        for (auto x : s) {
+            std::cout << x;
             if (x != *s.rbegin()) {
                 std::cout << ",";
             }
@@ -67,6 +94,7 @@ int main() {
     // E2();
     // E3();
     // E4();
+    E5();
 
     return 0;
 }
