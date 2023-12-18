@@ -1,4 +1,4 @@
-add_executable(test test.cpp Automaton.cpp Grammar.cpp)
+add_executable(test test.cpp Automaton.cpp Grammar.cpp Show.cpp)
 
 set(CMAKE_CXX_FLAGS "-std=c++20 -Wall")
 
