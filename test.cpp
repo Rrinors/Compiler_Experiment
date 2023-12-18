@@ -1,6 +1,6 @@
 #include "Automaton.h"
 #include "Grammar.h"
-#include <iostream>
+#include "Show.h"
 
 // 正则表达式转NFA、NFA转DFA、DFA最小化
 void E1() {
@@ -47,20 +47,11 @@ void E4() {
     g["A"].insert("Ba");
     g["A"].insert("b");
     g["B"].insert("Ac");
-    show(g);
-    std::cout << "----\n";
     g = rm_left_recursion(g);
+    show(g);
+    std::cout << "====\n";
     auto ans = get_first_set(g);
-    for (auto [c, s] : ans) {
-        std::cout << c << ": [";
-        for (auto x : s) {
-            std::cout << x;
-            if (x != *s.rbegin()) {
-                std::cout << ",";
-            }
-        }
-        std::cout << "]\n";
-    }
+    show(ans);
 }
 
 // FOLLOW集
@@ -71,22 +62,26 @@ void E5() {
     g["A"].insert("d");
     g["B"].insert("Ca");
     g["C"].insert("d");
-    show(g);
-    std::cout << "----\n";
     g = rm_left_recursion(g);
     show(g);
     std::cout << "====\n";
     auto ans = get_follow_set(g);
-    for (auto [c, s] : ans) {
-        std::cout << c << ": [";
-        for (auto x : s) {
-            std::cout << x;
-            if (x != *s.rbegin()) {
-                std::cout << ",";
-            }
-        }
-        std::cout << "]\n";
-    }
+    show(ans);
+}
+
+// SELECT集
+void E6() {
+    Grammar g;
+    g.start = "A";
+    g["A"].insert("Ba");
+    g["A"].insert("b");
+    g["B"].insert("Ac");
+    g["B"].insert("d");
+    g = rm_left_recursion(g);
+    show(g);
+    std::cout << "====\n";
+    auto ans = get_select_set(g);
+    show(ans);
 }
 
 int main() {
@@ -94,7 +89,8 @@ int main() {
     // E2();
     // E3();
     // E4();
-    E5();
+    // E5();
+    E6();
 
     return 0;
 }

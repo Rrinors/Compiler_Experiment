@@ -24,8 +24,6 @@ std::string get_head(std::string s);
 
 std::string rm_head(std::string s);
 
-void show(Grammar g);
-
 Grammar extract_LCF(Grammar g);
 
 struct Trie : std::vector<std::map<std::string, int>> {
@@ -38,6 +36,6 @@ std::map<std::string, std::set<std::string>> get_first_set(Grammar g);
 
 std::map<std::string, std::set<std::string>> get_follow_set(Grammar g);
 
-std::map<std::string, std::set<std::string>> get_select_set(Grammar g);
+std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_set(Grammar g);
 
 #endif

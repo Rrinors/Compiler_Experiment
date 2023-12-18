@@ -2,7 +2,7 @@
 #include <cassert>
 #include <queue>
 #include <iostream>
-// #include "Debug.h"
+#include "Show.h"
 
 Grammar rm_left_recursion(Grammar g) {
     std::vector<std::pair<std::string, std::set<std::string>>> r;
@@ -54,21 +54,6 @@ Grammar rm_left_recursion(Grammar g) {
     }
     
     return g;
-}
-
-void show(Grammar g) {
-    std::cout << "start: " << g.start << std::endl;
-    for (auto [c, v] : g) {
-        std::cout << c << "->";
-        for (auto s : v) {
-            if (s.empty()) std::cout << "ε";
-            else std::cout << s;
-            if (s != *v.rbegin()) {
-                std::cout << '|';
-            }
-        }
-        std::cout << std::endl;
-    }
 }
 
 template<typename T>
@@ -172,15 +157,15 @@ std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
         bool flag = true;
         for (auto s : g[cur]) {
             if (s.empty()) {
-                res[cur].insert("ε");
+                res[cur].emplace();
                 flag = false;
             }
-            for (int i = 0; i < s.length(); i++) {
+            for (int i = 0; i < int(s.length()); i++) {
                 if (s[i] == 39) {
                     continue;
                 }
                 std::string t = s.substr(i, 1);
-                if (i + 1 < s.length() && s[i + 1] == 39) {
+                if (i + 1 < int(s.length()) && s[i + 1] == 39) {
                     t.push_back(s[i + 1]);
                 }
                 if (g.contains(t)) {
@@ -220,17 +205,17 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
         auto c = q.front();
         q.pop();
         for (auto s : g[c]) {
-            for (int i = 0; i < s.length(); i++) {
+            for (int i = 0; i < int(s.length()); i++) {
                 if (s[i] == 39) {
                     continue;
                 }
                 std::string cur{s[i]};
-                if (i + 1 < s.length() && s[i + 1] == 39) {
+                if (i + 1 < int(s.length()) && s[i + 1] == 39) {
                     cur.push_back(s[i + 1]);
                 }
                 if (g.contains(cur)) {
                     int j = i + cur.size();
-                    if (j == s.length()) {
+                    if (j == int(s.length())) {
                         bool add = false;
                         for (auto x : res[c]) {
                             if (!res[cur].contains(x)) {
@@ -241,13 +226,13 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
                         if (add) { q.push(cur); }
                     } else {
                         std::string y{s[j]};
-                        if (j + 1 < s.length() && s[j + 1] == 39) {
+                        if (j + 1 < int(s.length()) && s[j + 1] == 39) {
                             y.push_back(s[j + 1]);
                         }
                         if (g.contains(y)) {
                             bool add = false;
                             for (auto x : first_set[y]) {
-                                if (x != "ε" && !res[cur].contains(x)) {
+                                if (!x.empty() && !res[cur].contains(x)) {
                                     add = true;
                                     res[cur].insert(x);
                                 }
@@ -266,6 +251,50 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
     return res;
 }
 
-std::map<std::string, std::set<std::string>> get_select_set(Grammar g) {
+std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_set(Grammar g) {
+    auto first_set = get_first_set(g);
+    auto follow_set = get_follow_set(g);
+    std::map<std::pair<std::string, std::string>, std::set<std::string>> res;
+
+    // show(first_set);
+    // std::cout << "====\n";
+
+    auto dfs = [&](auto self, std::string c) -> bool {
+        for (auto s : g[c]) {
+            if (s.empty()) {
+                return true;
+            }
+            auto p = get_head(s);
+            return g.contains(p) ? self(self, p) : false;
+        }
+        return false;
+    };
     
+    for (auto [c, v] : g) {
+        for (auto s : v) {
+            if (s.empty()) {
+                res[{c, s}] = follow_set[c];
+            } else {
+                auto e = g.contains(get_head(s)) ? dfs(dfs, get_head(s)) : false;
+                if (!e) {
+                    // std::cerr << c << " " << s << "!\n";
+                    res[{c, s}] = g.contains(get_head(s)) ? first_set[get_head(s)] : std::set{get_head(s)};
+                } else {
+                    std::set<std::string> add;
+                    if (!g.contains(get_head(s))) {
+                        add.insert(get_head(s));
+                    } else {
+                        for (auto x : first_set[get_head(s)]) {
+                            if (!x.empty()) {
+                                add.insert(x);
+                            }
+                        }
+                    }
+                    res[{c, s}] = follow_set[c] + add;
+                }
+            }
+        }
+    }
+
+    return res;
 }
