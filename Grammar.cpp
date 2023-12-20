@@ -322,24 +322,39 @@ std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_
 
 bool check_LL1(Grammar g) {
     auto select = get_select_set(g);
+
+    // show("select");
+    // show(select);
+    // show("");
+
     std::map<std::string, std::set<std::string>> f;
     
     for (auto [p, s] : select) {
+        if (int(g[p.first].size()) == 1) { continue; }
         if (!f.contains(p.first)) {
+            // std::cout << "add ";
+            // show(p.first);
             f[p.first] = s;
         } else {
+            // std::cout << "inter ";
+            // show(p.first);
             std::set<std::string> tmp;
             for (auto x : f[p.first]) {
                 if (s.contains(x)) {
                     tmp.insert(x);
                 }
             }
+            // show(tmp);
             std::swap(f[p.first], tmp);
         }
     }
 
     for (auto [_, g] : f) {
         if (!g.empty()) {
+            // show("ERROR");
+            // show(_);
+            // show(g);
+            // show("");
             return false;
         }
     }
@@ -347,17 +362,31 @@ bool check_LL1(Grammar g) {
     return true;
 }
 
-std::map<std::pair<std::string, std::string>, std::set<std::string>> get_LL1_PAT(Grammar g) {
+std::map<std::string, std::map<std::string, std::string>> get_LL1_PAT(Grammar g) {
     auto select = get_select_set(g);
+    
+    if (!check_LL1(g)) {
+        return {};
+    }
 
+    show("select");
     show(select);
-    std::cout << "....\n";
+    show("");
 
-    std::map<std::pair<std::string, std::string>, std::set<std::string>> res;
+    std::map<std::string, std::map<std::string, std::string>> res;
+    std::set<std::string> all;
     for (auto [p, s] : select) {
         for (auto c : s) {
-            if (c == "$") { continue; }
-            res[{p.first, c}].insert(p.second);
+            res[p.first][c] = p.second;
+            all.insert(c);
+        }
+    }
+
+    for (auto c : all) {
+        for (auto &[_, mp] : res) {
+            if (!mp.contains(c)) {
+                mp[c] = "EMPTY";
+            }
         }
     }
 

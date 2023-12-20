@@ -38,6 +38,6 @@ std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_
 
 bool check_LL1(Grammar g);
 
-std::map<std::pair<std::string, std::string>, std::set<std::string>> get_LL1_PAT(Grammar g);
+std::map<std::string, std::map<std::string, std::string>> get_LL1_PAT(Grammar g);
 
 #endif
