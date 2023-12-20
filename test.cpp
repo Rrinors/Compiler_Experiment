@@ -14,6 +14,7 @@ void E1() {
 // 消除左递归
 void E2() {
     Grammar g;
+    g.start = "S";
     g["S"].insert("Qc");
     g["S"].insert("c");
     g["Q"].insert("Rb");
@@ -29,6 +30,7 @@ void E2() {
 // 提取左公因子
 void E3() {
     Grammar g;
+    g.start = "A";
     g["A"].insert("Bcd");
     g["A"].insert("Bce");
     g["A"].insert("Be");
@@ -44,11 +46,10 @@ void E3() {
 void E4() {
     Grammar g;
     g.start = "A";
-    // g["A"].insert("Ba");
-    // g["A"].insert("b");
-    // g["B"].insert("Ac");
-    g["A"].insert("");
-    // g = rm_left_recursion(g);
+    g["A"].insert("Ba");
+    g["A"].insert("b");
+    g["B"].insert("Ac");
+    g = rm_left_recursion(g);
     show(g);
     std::cout << "====\n";
     auto ans = get_first_set(g);
@@ -58,12 +59,16 @@ void E4() {
 // FOLLOW集
 void E5() {
     Grammar g;
-    g.start = "A";
-    g["A"].insert("aBA");
-    g["A"].insert("d");
-    g["B"].insert("Ca");
-    g["C"].insert("d");
-    g = rm_left_recursion(g);
+    g.start = "E";
+    g["E"].insert("TA");
+    g["A"].insert("+TA");
+    g["A"].insert("");
+    g["T"].insert("FB");
+    g["B"].insert("*FB");
+    g["B"].insert("");
+    g["F"].insert("i");
+    g["F"].insert("(E)");
+    // g = rm_left_recursion(g);
     show(g);
     std::cout << "====\n";
     auto ans = get_follow_set(g);
