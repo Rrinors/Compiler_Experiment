@@ -56,3 +56,31 @@ void show(std::set<std::string> s) {
     }
     std::cout << "]\n";
 }
+
+void show(std::map<std::string, std::map<std::string, std::string>> mp) {
+    if (mp.empty()) { return; }
+    std::cout << "| |";
+    for (auto [s, _] : mp.begin()->second) {
+        std::cout << " " << s << " |";
+    }
+    std::cout << "\n";
+    std::cout << "| -- |";
+    for (auto [_, __] : mp.begin()->second) {
+        std::cout << " -- |";
+    }
+    std::cout << "\n";
+    for (auto [c, smp] : mp) {
+        std::cout << "| " << c << " |";
+        for (auto [_, s] : smp) {
+            if (s == "EMPTY")
+            std::cout << " ";
+            if (s != "EMPTY") {
+                std::cout << c << "->";
+                if (!s.empty()) std::cout << s;
+                else std::cout << "ε";
+            }
+            std::cout << " |";
+        }
+        std::cout << "\n";
+    }
+}
