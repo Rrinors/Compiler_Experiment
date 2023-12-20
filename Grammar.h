@@ -6,8 +6,6 @@
 #include <map>
 #include <vector>
 
-// using Grammar = std::map<std::string, std::set<std::string>>;
-
 struct Grammar : std::map<std::string, std::set<std::string>> {
     std::string start;
 };
@@ -37,5 +35,9 @@ std::map<std::string, std::set<std::string>> get_first_set(Grammar g);
 std::map<std::string, std::set<std::string>> get_follow_set(Grammar g);
 
 std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_set(Grammar g);
+
+bool check_LL1(Grammar g);
+
+std::map<std::pair<std::string, std::string>, std::set<std::string>> get_LL1_PAT(Grammar g);
 
 #endif

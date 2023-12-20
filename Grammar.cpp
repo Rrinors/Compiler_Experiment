@@ -1,8 +1,8 @@
 #include "Grammar.h"
+#include "Show.h"
 #include <cassert>
 #include <queue>
-#include <iostream>
-#include "Show.h"
+#include <algorithm>
 
 Grammar rm_left_recursion(Grammar g) {
     std::vector<std::pair<std::string, std::set<std::string>>> r;
@@ -153,6 +153,7 @@ void Trie::add(std::string s) {
 std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
     std::map<std::string, std::set<std::string>> res;
     std::set<std::string> tmp;
+
     auto dfs = [&](auto self, std::string cur) -> bool {
         bool flag = true;
         for (auto s : g[cur]) {
@@ -191,7 +192,7 @@ std::map<std::string, std::set<std::string>> get_first_set(Grammar g) {
 }
 
 std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
-    auto first_set = get_first_set(g);
+    auto first = get_first_set(g);
 
     std::map<std::string, std::set<std::string>> res;
     std::queue<std::string> q;
@@ -217,7 +218,7 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
                     int j = i + cur.size();
                     if (j == int(s.length())) {
                         bool add = false;
-                        for (auto x : res[c]) {
+                        for (auto x : res[c]) { 
                             if (!res[cur].contains(x)) {
                                 add = true;
                                 res[cur].insert(x);
@@ -230,14 +231,43 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
                             y.push_back(s[j + 1]);
                         }
                         if (g.contains(y)) {
-                            bool add = false;
-                            for (auto x : first_set[y]) {
-                                if (!x.empty() && !res[cur].contains(x)) {
-                                    add = true;
-                                    res[cur].insert(x);
+                            if (j + int(y.length()) == int(s.length())) {
+                                bool y_to_empty = false, add = false;
+                                for (auto x : first[y]) {
+                                    if (x.empty()) {
+                                        y_to_empty = true;
+                                    } else if (!res[cur].contains(x)) {
+                                        add = true;
+                                        res[cur].insert(x);
+                                    }
                                 }
+                                if (y_to_empty) {
+                                    for (auto x : res[c]) {
+                                        if (!res[cur].contains(x)) {
+                                            add = true;
+                                            res[cur].insert(x);
+                                        }
+                                    }
+                                }
+                                if (add) { q.push(cur); }
+                                add = false;
+                                for (auto x : res[c]) {
+                                    if (!res[y].contains(x)) {
+                                        add = true;
+                                        res[y].insert(x);
+                                    }
+                                }
+                                if (add) { q.push(y); }
+                            } else {
+                                bool add = false;
+                                for (auto x : first[y]) {
+                                    if (!x.empty() && !res[cur].contains(x)) {
+                                        add = true;
+                                        res[cur].insert(x);
+                                    }
+                                }
+                                if (add) { q.push(cur); }
                             }
-                            if (add) { q.push(cur); }
                         } else if (!res[cur].contains(y)) {
                             res[cur].insert(y);
                             q.push(cur);
@@ -252,47 +282,82 @@ std::map<std::string, std::set<std::string>> get_follow_set(Grammar g) {
 }
 
 std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_set(Grammar g) {
-    auto first_set = get_first_set(g);
-    auto follow_set = get_follow_set(g);
+    auto first = get_first_set(g);
+    auto follow = get_follow_set(g);
+
     std::map<std::pair<std::string, std::string>, std::set<std::string>> res;
-
-    // show(first_set);
-    // std::cout << "====\n";
-
-    auto dfs = [&](auto self, std::string c) -> bool {
-        for (auto s : g[c]) {
-            if (s.empty()) {
-                return true;
-            }
-            auto p = get_head(s);
-            return g.contains(p) ? self(self, p) : false;
-        }
-        return false;
-    };
     
     for (auto [c, v] : g) {
         for (auto s : v) {
-            if (s.empty()) {
-                res[{c, s}] = follow_set[c];
-            } else {
-                auto e = g.contains(get_head(s)) ? dfs(dfs, get_head(s)) : false;
-                if (!e) {
-                    // std::cerr << c << " " << s << "!\n";
-                    res[{c, s}] = g.contains(get_head(s)) ? first_set[get_head(s)] : std::set{get_head(s)};
+            std::set<std::string> set;
+            for (int i = 0; i < int(s.length()); i++) {
+                if (s[i] == 39) { continue; }
+                std::string cur{s[i]};
+                if (i + 1 < int(s.length()) && s[i + 1] == 39) {
+                    cur.push_back(s[i + 1]);
+                }
+                if (g.contains(cur)) {
+                    set = set + first[cur];
                 } else {
-                    std::set<std::string> add;
-                    if (!g.contains(get_head(s))) {
-                        add.insert(get_head(s));
-                    } else {
-                        for (auto x : first_set[get_head(s)]) {
-                            if (!x.empty()) {
-                                add.insert(x);
-                            }
-                        }
-                    }
-                    res[{c, s}] = follow_set[c] + add;
+                    set.insert(cur);
+                }
+                if (i + int(cur.length()) < int(s.length()) && set.contains("")) {
+                    set.erase("");
+                } else {
+                    break;
                 }
             }
+            if (set.empty()) {
+                set = set + follow[c];
+            } else if (set.contains("")) {
+                set.erase("");
+                set = set + follow[c];
+            }
+            res[{c, s}] = set;
+        }
+    }
+
+    return res;
+}
+
+bool check_LL1(Grammar g) {
+    auto select = get_select_set(g);
+    std::map<std::string, std::set<std::string>> f;
+    
+    for (auto [p, s] : select) {
+        if (!f.contains(p.first)) {
+            f[p.first] = s;
+        } else {
+            std::set<std::string> tmp;
+            for (auto x : f[p.first]) {
+                if (s.contains(x)) {
+                    tmp.insert(x);
+                }
+            }
+            std::swap(f[p.first], tmp);
+        }
+    }
+
+    for (auto [_, g] : f) {
+        if (!g.empty()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+std::map<std::pair<std::string, std::string>, std::set<std::string>> get_LL1_PAT(Grammar g) {
+    auto select = get_select_set(g);
+
+    show(select);
+    std::cout << "....\n";
+
+    std::map<std::pair<std::string, std::string>, std::set<std::string>> res;
+    for (auto [p, s] : select) {
+        for (auto c : s) {
+            if (c == "$") { continue; }
+            res[{p.first, c}].insert(p.second);
         }
     }
 
