@@ -44,10 +44,11 @@ void E3() {
 void E4() {
     Grammar g;
     g.start = "A";
-    g["A"].insert("Ba");
-    g["A"].insert("b");
-    g["B"].insert("Ac");
-    g = rm_left_recursion(g);
+    // g["A"].insert("Ba");
+    // g["A"].insert("b");
+    // g["B"].insert("Ac");
+    g["A"].insert("");
+    // g = rm_left_recursion(g);
     show(g);
     std::cout << "====\n";
     auto ans = get_first_set(g);
@@ -72,15 +73,36 @@ void E5() {
 // SELECT集
 void E6() {
     Grammar g;
-    g.start = "A";
-    g["A"].insert("Ba");
-    g["A"].insert("b");
-    g["B"].insert("Ac");
-    g["B"].insert("d");
-    g = rm_left_recursion(g);
+    g.start = "E";
+    g["E"].insert("TA");
+    g["A"].insert("+TA");
+    g["A"].insert("");
+    g["T"].insert("FB");
+    g["B"].insert("*FB");
+    g["B"].insert("");
+    g["F"].insert("i");
+    g["F"].insert("(E)");
+    // g = rm_left_recursion(g);
     show(g);
     std::cout << "====\n";
     auto ans = get_select_set(g);
+    show(ans);
+}
+
+// 判断LL1文法及预测表
+void E7() {
+    Grammar g;
+    g.start = "S";
+    g["S"].insert("AaS");
+    g["S"].insert("BbS");
+    g["S"].insert("d");
+    g["A"].insert("a");
+    g["B"].insert("");
+    g["B"].insert("c");
+    show(g);
+    std::cout << "====\n";
+    std::cout << "LL1: " << check_LL1(g) << std::endl;
+    auto ans = get_LL1_PAT(g);
     show(ans);
 }
 
@@ -90,7 +112,8 @@ int main() {
     // E3();
     // E4();
     // E5();
-    E6();
+    // E6();
+    E7();
 
     return 0;
 }
