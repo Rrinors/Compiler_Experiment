@@ -34,11 +34,25 @@ void show(std::map<std::pair<std::string, std::string>, std::set<std::string>> m
     for (auto [c, s] : mp) {
         std::cout << c.first << "->" << (c.second.empty() ? "ε" : c.second) << ": [";
         for (auto x : s) {
-            std::cout << x;
+            if (x.empty()) std::cout << "ε";
+            else std::cout << x;
             if (x != *s.rbegin()) {
                 std::cout << ",";
             }
         }
         std::cout << "]\n";
     }
+}
+
+void show(std::string s) {
+    std::cout << s << "\n";
+}
+
+void show(std::set<std::string> s) {
+    std::cout << "[";
+    for (auto x : s) {
+        std::cout << x;
+        if (x != *s.rbegin()) { std::cout << ","; }
+    }
+    std::cout << "]\n";
 }
