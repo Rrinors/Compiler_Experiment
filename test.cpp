@@ -92,17 +92,21 @@ void E6() {
 // 判断LL1文法及预测表
 void E7() {
     Grammar g;
-    g.start = "S";
-    g["S"].insert("AaS");
-    g["S"].insert("BbS");
-    g["S"].insert("d");
-    g["A"].insert("a");
+    g.start = "E";
+    g["E"].insert("TA");
+    g["A"].insert("+TA");
+    g["A"].insert("");
+    g["T"].insert("FB");
+    g["B"].insert("*FB");
     g["B"].insert("");
-    g["B"].insert("c");
+    g["F"].insert("i");
+    g["F"].insert("(E)");
+    show("Grammar:");
     show(g);
-    std::cout << "====\n";
-    std::cout << "LL1: " << check_LL1(g) << std::endl;
+    show("");
+    std::cout << "LL1:" << check_LL1(g) << "\n\n";
     auto ans = get_LL1_PAT(g);
+    show("LL(1) PAT");
     show(ans);
 }
 
