@@ -323,38 +323,25 @@ std::map<std::pair<std::string, std::string>, std::set<std::string>> get_select_
 bool check_LL1(Grammar g) {
     auto select = get_select_set(g);
 
-    // show("select");
-    // show(select);
-    // show("");
-
     std::map<std::string, std::set<std::string>> f;
     
     for (auto [p, s] : select) {
         if (int(g[p.first].size()) == 1) { continue; }
         if (!f.contains(p.first)) {
-            // std::cout << "add ";
-            // show(p.first);
             f[p.first] = s;
         } else {
-            // std::cout << "inter ";
-            // show(p.first);
             std::set<std::string> tmp;
             for (auto x : f[p.first]) {
                 if (s.contains(x)) {
                     tmp.insert(x);
                 }
             }
-            // show(tmp);
             std::swap(f[p.first], tmp);
         }
     }
 
     for (auto [_, g] : f) {
         if (!g.empty()) {
-            // show("ERROR");
-            // show(_);
-            // show(g);
-            // show("");
             return false;
         }
     }
